@@ -23,9 +23,9 @@ fi
 current_date=$(date -u)
 if [[ 'git status --porcelain' ]]
 	then
-		git add -A
-		git commit -m "$current_date"
-		git push origin master
+		git add -A &> /dev/null
+		git commit -m "$current_date" &> /dev/null
+		git push origin master &> /dev/null
 fi
 
 
