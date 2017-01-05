@@ -1,6 +1,13 @@
 #! /bin/bash
 
 #First, check if this is a valid git repo
+case $(ps -o stat= -p $$) in
+  *+*) 
+		echo "Running in foreground" 
+		echo "please let the program run in background"
+		exit
+		;;
+esac
 
 if [ ! -d .git ]
 	then
@@ -21,11 +28,15 @@ fi
 
 #Next, we will periodically check for the git status
 current_date=$(date -u)
-if [[ 'git status --porcelain' ]]
-	then
-		git add -A &> /dev/null
-		git commit -m "$current_date" &> /dev/null
-		git push origin master &> /dev/null
-fi
+while :
+do
+	if [[ 'git status --porcelain' ]]
+		then
+			git add -A &> /dev/null
+			git commit -m "$current_date" &> /dev/null
+			git push origin master &> /dev/null
+	fi
+	sleep $refresh_time
+done
 
 
