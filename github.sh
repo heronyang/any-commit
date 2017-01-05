@@ -1,6 +1,6 @@
 #! /bin/bash
 
-#First, check if this is a valid git repo
+#First, check if this if the git repo is ready
 case $(ps -o stat= -p $$) in
   *+*) 
 		echo "Running in foreground" 
@@ -13,6 +13,14 @@ if [ ! -d .git ]
 	then
 		echo "this is not a valid git repo"
 		echo "Please initiate it before attempting to sync with Dropbox"
+		exit
+fi
+
+#Check if it has a valid origin
+if [[ ! 'git remote' ]]
+	then
+		echo "this git repo does not have a valid remote branch"
+		echo "Please add the remote branch"
 		exit
 fi
 
