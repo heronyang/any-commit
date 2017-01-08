@@ -10,8 +10,6 @@ Making the cooperation between programmer and designer easier than you can imagi
 
 
 #Install and Run
-##Github Part
-1: copy `github.sh` to the local repo location
 
-2: Run the script in the background. `./github.sh &`
+1: Run the script './git-sync'. It will run in background.
 

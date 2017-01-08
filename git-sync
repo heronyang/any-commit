@@ -1,0 +1,13 @@
+#! /bin/bash
+#This make the script detached from the shell command line
+_evalBG() {
+	eval "$@" &> /dev/null &!
+}
+#This is only for testing
+path="./"
+remote="git@github.com:heronyang/git-dropbox.git"
+refresh_time=5
+
+command="github.sh ${path} ${remote} $refresh_time"
+
+_evalBg "${command}"
