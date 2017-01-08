@@ -1,5 +1,6 @@
 #! /bin/bash
-
+cd ~/
+exit
 #First, check if this if the git repo is ready
 case $(ps -o stat= -p $$) in
   *+*) 
