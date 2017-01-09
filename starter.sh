@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Installation (Git)
 install_git_if_needed() {

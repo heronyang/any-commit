@@ -12,7 +12,7 @@ cd "${local_path}"
 if [ ! -d .git ]
 	then
 		echo "this is not a valid git repo"
-		echo "Trying to clone the repo"
+		echo "Trying to clone the repo..."
 		git clone "${remote_url}"
 fi
 
@@ -35,6 +35,7 @@ fi
 
 #Next, we will periodically check for the git status
 current_date=$(date -u)
+exit
 while :
 do
 	git pull "${remote_url}"

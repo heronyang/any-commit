@@ -1,13 +1,147 @@
-#! /bin/bash
+#!/bin/bash
+
 #This make the script detached from the shell command line
 _evalBG() {
-	eval "$@" &> /dev/null &!
+    eval "$@" &> /dev/null &!
 }
-#This is only for testing
-path="./"
-remote="git@github.com:heronyang/git-dropbox.git"
-refresh_time=5
+#Installation (Git)
+install_git_if_needed() {
+    # Constants
+    YUM_CMD=$(which yum)
+    APT_GET_CMD=$(which apt-get)
 
-command="github.sh ${path} ${remote} $refresh_time"
+    # Install git if needed
+    git --version 2>&1 >/dev/null
+    IS_GIT_AVAILABLE=$?
+    if ! [ $IS_GIT_AVAILABLE -eq 0 ]; then
+        echo "Installing git..."
+        if [[ ! -z $YUM_CMD ]]; then
+            sudo yum install -y git
+        elif [[ ! -z $APT_GET_CMD ]]; then
+            sudo apt-get install -y git
+        else
+            echo "error can't install git"
+            exit 1;
+        fi
+        echo "Git is installed."
+    fi
+}
 
-_evalBg "${command}"
+generate_public_key_if_needed() {
+
+	if ls ~/.ssh/*.pub 1> /dev/null 2>&1; then
+		echo "public key does exist"
+        exit
+	else
+		echo "public key does not exist, generating..."
+        exit
+		ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa -q -N ""
+	fi
+	eval `ssh-agent -s`
+	ssh-add ~/.ssh/id_rsa
+
+}
+
+config_git_if_needed() {
+
+    # public key upload
+	generate_public_key_if_needed
+	hostname=`hostname`
+	key=`cat ~/.ssh/id_rsa.pub`
+	curl -u "heronyang" --data "{\"title\":\"$hostname\", \"key\":\"$key\"}" https://api.github.com/user/keys
+
+    # email / username for git
+    git_email=`git config --global user.email`
+    if [ -z "$git_email" ] ; then
+        read -r -p 'Please enter your email: ' var
+        git config --global user.email "$var"
+    fi
+
+    git_name=`git config --global user.name`
+    if [ -z "$git_name" ] ; then
+        read -r -p 'Please enter your full name: ' var
+        git config --global user.name "$var"
+    fi
+
+}
+
+# Parse
+show_help() {
+    USAGE_TEXT="Usage: $0 [-f <string>] [-l <string>] [-g <string>]
+    -f, --folder                Local git repo path,        ex: ~/repo/
+    -l, --github-link           Github repo URL,            ex: https://github.com/heronyang/dotfiles
+    -g, --github-username       Github username,            ex: https://github.com/<username>
+    "
+    echo "$USAGE_TEXT" 1>&2; exit 1;
+}
+
+parse_option() {
+
+    while :; do
+        case $1 in
+            -h|-\?|--help)
+                show_help
+                exit
+                ;;
+            -f|--folder)
+                if [ -n "$2" ]; then
+                    folder=$2
+                    shift
+                else
+                    printf 'ERROR: "--folder" requires a non-empty option argument.\n' >&2
+                    exit 1
+                fi
+                ;;
+            -l|--github-link)
+                if [ -n "$2" ]; then
+                    github_link=$2
+                    shift
+                else
+                    printf 'ERROR: "--github-link" requires a non-empty option argument.\n' >&2
+                    exit 1
+                fi
+                ;;
+            -g|--github-username)
+                if [ -n "$2" ]; then
+                    github_username=$2
+                    shift
+                else
+                    printf 'ERROR: "--github-username" requires a non-empty option argument.\n' >&2
+                    exit 1
+                fi
+                ;;
+            --)              # End of all options.
+                shift
+                break
+                ;;
+            -?*)
+                printf 'WARN: Unknown option (ignored): %s\n' "$1" >&2
+                ;;
+            *)               # Default case: If no more options then break out of the loop.
+                break
+        esac
+
+        shift
+    done
+
+    if [ -z "${folder}" ] || [ -z "${github_link}" ] || [ -z "${github_username}" ]; then
+        show_help
+    fi
+
+}
+
+# Main
+parse_option $@
+install_git_if_needed
+config_git_if_needed
+
+# Further usage
+echo "folder is $folder"
+echo "github repo link is $github_link"
+echo "github username is is $github_username"
+
+command="github.sh ${folder} ${github_link}"
+
+echo "start to run the auto-sync command in background"
+
+_evalBG "${command}"
