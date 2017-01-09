@@ -23,8 +23,28 @@ install_git_if_needed() {
     fi
 }
 
+generate_public_key_if_needed() {
+
+	if ls ~/.ssh/*.pub 1> /dev/null 2>&1; then
+		echo "public key does exist"
+	else
+		echo "public key does not exist, generating..."
+		ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa -q -N ""
+	fi
+	eval `ssh-agent -s`
+	ssh-add ~/.ssh/id_rsa
+
+}
+
 config_git_if_needed() {
 
+    # public key upload
+	generate_public_key_if_needed
+	hostname=`hostname`
+	key=`cat ~/.ssh/id_rsa.pub`
+	curl -u "heronyang" --data "{\"title\":\"$hostname\", \"key\":\"$key\"}" https://api.github.com/user/keys
+
+    # email / username for git
     git_email=`git config --global user.email`
     if [ -z "$git_email" ] ; then
         read -r -p 'Please enter your email: ' var
@@ -41,23 +61,23 @@ config_git_if_needed() {
 
 # Parse
 show_help() {
+    USAGE_TEXT="Usage: $0 [-f <string>] [-l <string>] [-g <string>]
+    -f, --folder                Local git repo path,        ex: ~/repo/
+    -l, --github-link           Github repo URL,            ex: https://github.com/heronyang/dotfiles
+    -g, --github-username       Github username,            ex: https://github.com/<username>
+    "
     echo "$USAGE_TEXT" 1>&2; exit 1;
 }
 
 parse_option() {
 
-    USAGE_TEXT="Usage: $0 [-f <string>] [-g <string>]
-    -f, --folder        Local git repo path, ex: ~/repo/
-    -g, --github        Github repo URL, ex: https://github.com/heronyang/dotfiles
-    "
-
     while :; do
         case $1 in
-            -h|-\?|--help)   # Call a "show_help" function to display a synopsis, then exit.
+            -h|-\?|--help)
                 show_help
                 exit
                 ;;
-            -f|--folder)       # Takes an option argument, ensuring it has been specified.
+            -f|--folder)
                 if [ -n "$2" ]; then
                     folder=$2
                     shift
@@ -66,12 +86,21 @@ parse_option() {
                     exit 1
                 fi
                 ;;
-            -g|--github)       # Takes an option argument, ensuring it has been specified.
+            -l|--github-link)
                 if [ -n "$2" ]; then
-                    github=$2
+                    github_link=$2
                     shift
                 else
-                    printf 'ERROR: "--github" requires a non-empty option argument.\n' >&2
+                    printf 'ERROR: "--github-link" requires a non-empty option argument.\n' >&2
+                    exit 1
+                fi
+                ;;
+            -g|--github-username)
+                if [ -n "$2" ]; then
+                    github_username=$2
+                    shift
+                else
+                    printf 'ERROR: "--github-username" requires a non-empty option argument.\n' >&2
                     exit 1
                 fi
                 ;;
@@ -89,7 +118,7 @@ parse_option() {
         shift
     done
 
-    if [ -z "${folder}" ] || [ -z "${github}" ]; then
+    if [ -z "${folder}" ] || [ -z "${github_link}" ] || [ -z "${github_username}" ]; then
         show_help
     fi
 
@@ -102,4 +131,5 @@ config_git_if_needed
 
 # Further usage
 echo "folder is $folder"
-echo "github is $github"
+echo "github repo link is $github_link"
+echo "github username is is $github_username"
