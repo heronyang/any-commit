@@ -16,3 +16,6 @@ Usage: ./git-snyc [-f <string>] [-l <string>] [-g <string>]
     -l, --github-link           Github repo URL,            ex: https://github.com/heronyang/dotfiles
     -g, --github-username       Github username,            ex: https://github.com/<username>
 ```
+##Stop the service
+
+Run `./stop.sh`
