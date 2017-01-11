@@ -1,4 +1,4 @@
-# Git-Dropbox
+# Any Commit
 
 Making the cooperation between programmer and designer easier than you can imagine. It will auto-sync the local folder with github so that the designer won't worry about syncing with programmer's work.
 
