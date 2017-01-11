@@ -8,6 +8,9 @@ local_path=${args[0]}
 remote_url=${args[1]}
 refresh_time=5
 #First, redirect to the local path and check if this if the git repo is ready
+if [ ! -d "${local_path}" ]; then
+	mkdir "${local_path}"
+fi
 cd "${local_path}"
 if [ ! -d .git ]
 	then
@@ -35,12 +38,13 @@ fi
 
 #Next, we will periodically check for the git status
 current_date=$(date -u)
-exit
 while :
 do
+	echo "trying to auto-sync the repo..."
 	git pull "${remote_url}"
 	if [[ 'git status --porcelain' ]]
 		then
+			echo "changes found, syncing..."
 			git add -A &> /dev/null
 			git commit -m "$current_date" &> /dev/null
 			git push "${remote_url}" &> /dev/null
