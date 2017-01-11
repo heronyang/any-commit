@@ -140,7 +140,7 @@ echo "github repo link is $github_link"
 echo "github username is is $github_username"
 
 
-command="github.sh ${folder} ${github_link}"
+command="./github.sh ${folder} ${github_link}"
 
 echo "start to run the auto-sync command in background"
 
