@@ -1,64 +1,5 @@
 #!/bin/bash
 
-# Installation (Git)
-install_git_if_needed() {
-    # Constants
-    YUM_CMD=$(which yum)
-    APT_GET_CMD=$(which apt-get)
-
-    # Install git if needed
-    git --version 2>&1 >/dev/null
-    IS_GIT_AVAILABLE=$?
-    if ! [ $IS_GIT_AVAILABLE -eq 0 ]; then
-        echo "Installing git..."
-        if [[ ! -z $YUM_CMD ]]; then
-            sudo yum install -y git
-        elif [[ ! -z $APT_GET_CMD ]]; then
-            sudo apt-get install -y git
-        else
-            echo "error can't install git"
-            exit 1;
-        fi
-        echo "Git is installed."
-    fi
-}
-
-generate_public_key_if_needed() {
-
-	if ls ~/.ssh/*.pub 1> /dev/null 2>&1; then
-		echo "public key does exist"
-	else
-		echo "public key does not exist, generating..."
-		ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa -q -N ""
-	fi
-	eval `ssh-agent -s`
-	ssh-add ~/.ssh/id_rsa
-
-}
-
-config_git_if_needed() {
-
-    # public key upload
-	generate_public_key_if_needed
-	hostname=`hostname`
-	key=`cat ~/.ssh/id_rsa.pub`
-	curl -u "heronyang" --data "{\"title\":\"$hostname\", \"key\":\"$key\"}" https://api.github.com/user/keys
-
-    # email / username for git
-    git_email=`git config --global user.email`
-    if [ -z "$git_email" ] ; then
-        read -r -p 'Please enter your email: ' var
-        git config --global user.email "$var"
-    fi
-
-    git_name=`git config --global user.name`
-    if [ -z "$git_name" ] ; then
-        read -r -p 'Please enter your full name: ' var
-        git config --global user.name "$var"
-    fi
-
-}
-
 # Parse
 show_help() {
     USAGE_TEXT="Usage: $0 [-f <string>] [-l <string>] [-g <string>]
@@ -120,6 +61,65 @@ parse_option() {
 
     if [ -z "${folder}" ] || [ -z "${github_link}" ] || [ -z "${github_username}" ]; then
         show_help
+    fi
+
+}
+
+# Installation (Git)
+install_git_if_needed() {
+    # Constants
+    YUM_CMD=$(which yum)
+    APT_GET_CMD=$(which apt-get)
+
+    # Install git if needed
+    git --version 2>&1 >/dev/null
+    IS_GIT_AVAILABLE=$?
+    if ! [ $IS_GIT_AVAILABLE -eq 0 ]; then
+        echo "Installing git..."
+        if [[ ! -z $YUM_CMD ]]; then
+            sudo yum install -y git
+        elif [[ ! -z $APT_GET_CMD ]]; then
+            sudo apt-get install -y git
+        else
+            echo "error can't install git"
+            exit 1;
+        fi
+        echo "Git is installed."
+    fi
+}
+
+generate_public_key_if_needed() {
+
+	if ls ~/.ssh/*.pub 1> /dev/null 2>&1; then
+		echo "public key does exist"
+	else
+		echo "public key does not exist, generating..."
+		ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa -q -N ""
+	fi
+	eval `ssh-agent -s`
+	ssh-add ~/.ssh/id_rsa
+
+}
+
+config_git_if_needed() {
+
+    # public key upload
+	generate_public_key_if_needed
+	hostname=`hostname`
+	key=`cat ~/.ssh/id_rsa.pub`
+	curl -u "$github_username" --data "{\"title\":\"$hostname\", \"key\":\"$key\"}" https://api.github.com/user/keys
+
+    # email / username for git
+    git_email=`git config --global user.email`
+    if [ -z "$git_email" ] ; then
+        read -r -p 'Please enter your email: ' var
+        git config --global user.email "$var"
+    fi
+
+    git_name=`git config --global user.name`
+    if [ -z "$git_name" ] ; then
+        read -r -p 'Please enter your full name: ' var
+        git config --global user.name "$var"
     fi
 
 }
