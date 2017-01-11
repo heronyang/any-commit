@@ -2,7 +2,8 @@
 
 #This make the script detached from the shell command line
 _evalBG() {
-    eval "$@" &> /dev/null &!
+    nohup $@
+    #eval "$@" &> /dev/null &!
 }
 # Parse
 show_help() {
@@ -138,8 +139,7 @@ echo "folder is $folder"
 echo "github repo link is $github_link"
 echo "github username is is $github_username"
 
-command="github.sh ${folder} ${github_link}"
 
 echo "start to run the auto-sync command in background"
-
+command="./github.sh ${folder} ${github_link} &"
 _evalBG "${command}"

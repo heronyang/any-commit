@@ -7,7 +7,6 @@ args=("$@")
 local_path=${args[0]}
 remote_url=${args[1]}
 refresh_time=5
-exit
 #First, redirect to the local path and check if this if the git repo is ready
 cd "${local_path}"
 if [ ! -d .git ]
