@@ -49,7 +49,6 @@ do
 		then
 			echo "changes found, syncing..."
 			git status
-			exit
 			git add -A &> /dev/null
 			git commit -m "$current_date" &> /dev/null
 			git push "${remote_url}" &> /dev/null
